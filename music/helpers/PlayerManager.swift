@@ -5,6 +5,7 @@
 //  Created by Vinayak Vikram on 8/3/26.
 //
 
+import AppKit
 import AVFoundation
 import Combine
 import MediaPlayer
@@ -16,9 +17,13 @@ final class PlayerManager: NSObject, ObservableObject {
     @Published private(set) var currentTrack: String?
     @Published private(set) var isPlaying = false
     @Published private(set) var recentTracks: [String] = []
+    @Published private(set) var artworkData: Data?
+    @Published private(set) var currentTime: TimeInterval = 0
+    @Published private(set) var duration: TimeInterval = 0
 
     private var player: AVPlayer?
     private var endObserver: NSObjectProtocol?
+    private var timeObserverToken: Any?
 
     var displayTitle: String {
         guard let currentTrack else { return "Nothing playing" }
@@ -36,6 +41,9 @@ final class PlayerManager: NSObject, ObservableObject {
         if let endObserver {
             NotificationCenter.default.removeObserver(endObserver)
         }
+        if let timeObserverToken {
+            self.player?.removeTimeObserver(timeObserverToken)
+        }
 
         let player = AVPlayer(url: url)
         self.player = player
@@ -49,13 +57,32 @@ final class PlayerManager: NSObject, ObservableObject {
                 self?.updateNowPlayingInfo()
             }
         }
+        timeObserverToken = player.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.5, preferredTimescale: 600),
+            queue: .main
+        ) { [weak self] time in
+            guard let self else { return }
+            self.currentTime = time.seconds
+            if let itemDuration = player.currentItem?.duration.seconds, itemDuration.isFinite {
+                self.duration = itemDuration
+            }
+        }
 
         player.play()
         currentTrack = track
         isPlaying = true
+        currentTime = 0
+        duration = 0
         recordRecentlyPlayed(track)
         verifyIndex(for: track)
+        artworkData = extractArtwork(for: track)
         updateNowPlayingInfo()
+    }
+
+    func seek(to time: TimeInterval) {
+        guard let player else { return }
+        currentTime = time
+        player.seek(to: CMTime(seconds: time, preferredTimescale: 600))
     }
 
     private func recordRecentlyPlayed(_ track: String) {
@@ -80,10 +107,17 @@ final class PlayerManager: NSObject, ObservableObject {
             NotificationCenter.default.removeObserver(endObserver)
             self.endObserver = nil
         }
+        if let timeObserverToken {
+            player?.removeTimeObserver(timeObserverToken)
+            self.timeObserverToken = nil
+        }
         player?.pause()
         player = nil
         currentTrack = nil
         isPlaying = false
+        artworkData = nil
+        currentTime = 0
+        duration = 0
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
@@ -130,6 +164,9 @@ final class PlayerManager: NSObject, ObservableObject {
         ]
         if let duration = player.currentItem?.duration.seconds, duration.isFinite {
             info[MPMediaItemPropertyPlaybackDuration] = duration
+        }
+        if let artworkData, let image = NSImage(data: artworkData) {
+            info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
         }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }

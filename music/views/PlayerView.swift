@@ -5,32 +5,49 @@
 //  Created by Vinayak Vikram on 8/2/26.
 //
 
+import AppKit
 import SwiftUI
 
-private let playerWidth: CGFloat = 220
-private let contentPadding: CGFloat = 6
+private let playerWidth: CGFloat = 260
+private let contentPadding: CGFloat = 12
 
 struct PlayerView: View {
     @EnvironmentObject private var playerManager: PlayerManager
 
+    private var artworkSize: CGFloat { playerWidth - contentPadding * 2 }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             ScrollingText(text: playerManager.displayTitle)
 
-            HStack(spacing: 16) {
+            if let artworkData = playerManager.artworkData, let image = NSImage(data: artworkData) {
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: artworkSize, height: artworkSize)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+
+            VStack(spacing: 6) {
+                Slider(
+                    value: Binding(
+                        get: { playerManager.currentTime },
+                        set: { playerManager.seek(to: $0) }
+                    ),
+                    in: 0...max(playerManager.duration, 1)
+                )
+                .disabled(playerManager.currentTrack == nil)
+
                 Button {
                     playerManager.togglePlayPause()
                 } label: {
                     Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 18))
+                        .frame(width: 40, height: 28)
                 }
+                .buttonStyle(.bordered)
                 .disabled(playerManager.currentTrack == nil)
-
-                Button {
-                    playerManager.stop()
-                } label: {
-                    Image(systemName: "stop.fill")
-                }
-                .disabled(playerManager.currentTrack == nil)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
 
             if !playerManager.recentTracks.isEmpty {
