@@ -87,3 +87,15 @@ func importTrack(from sourceURL: URL) -> Bool {
         return false
     }
 }
+
+@discardableResult
+func deleteTrack(_ track: String) -> Bool {
+    guard let url = tracksDirectoryURL()?.appendingPathComponent(track) else { return false }
+    do {
+        try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+    } catch {
+        return false
+    }
+    removeFromIndex(track)
+    return true
+}

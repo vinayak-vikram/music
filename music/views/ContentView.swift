@@ -177,6 +177,8 @@ struct ContentView: View {
                 TrackRow(track: track) {
                     trackBeingEdited = track
                     isShowingMetadataEditor = true
+                } onDelete: {
+                    deleteTrackFromLibrary(track)
                 }
             }
             .navigationTitle("All Tracks")
@@ -206,6 +208,8 @@ struct ContentView: View {
                             TrackRow(track: track, subtitleStyle: groupedTrackSubtitleStyle) {
                                 trackBeingEdited = track
                                 isShowingMetadataEditor = true
+                            } onDelete: {
+                                deleteTrackFromLibrary(track)
                             }
                         }
                     }
@@ -229,12 +233,22 @@ struct ContentView: View {
                 TrackRow(track: track, subtitleStyle: groupedTrackSubtitleStyle) {
                     trackBeingEdited = track
                     isShowingMetadataEditor = true
+                } onDelete: {
+                    deleteTrackFromLibrary(track)
                 }
             }
             .navigationTitle(selectedAlbum.id)
         } else {
             ContentUnavailableView("Select \(secondaryLevelNameWithArticle)", systemImage: "rectangle.stack")
         }
+    }
+
+    private func deleteTrackFromLibrary(_ track: String) {
+        if playerManager.currentTrack == track {
+            playerManager.stop()
+        }
+        deleteTrack(track)
+        trackStore.refresh()
     }
 }
 
@@ -248,6 +262,7 @@ private struct TrackRow: View {
     let track: String
     var subtitleStyle: TrackSubtitleStyle = .artistAndAlbum
     let onEditMetadata: () -> Void
+    let onDelete: () -> Void
 
     @EnvironmentObject private var playerManager: PlayerManager
 
@@ -286,6 +301,8 @@ private struct TrackRow: View {
         .buttonStyle(.plain)
         .contextMenu {
             Button("Edit Metadata…", action: onEditMetadata)
+            Divider()
+            Button("Delete", role: .destructive, action: onDelete)
         }
     }
 }
