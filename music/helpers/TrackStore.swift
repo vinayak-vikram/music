@@ -10,7 +10,6 @@ import Foundation
 
 @MainActor
 final class TrackStore: ObservableObject {
-    // TODO: extend with recent tracks for menu bar
     // TODO: smth smth memory efficiency+blah
     @Published private(set) var tracks: [String] = []
 
