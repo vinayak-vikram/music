@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var isShowingFileImporter = false
     @State private var isShowingImportError = false
     @State private var isShowingMetadataEditor = false
+    @State private var isShowingIMSLPPanel = false
     @State private var trackBeingEdited = ""
 
     @State private var groupingMode: LibraryGrouping = .allTracks
@@ -92,6 +93,11 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
+                Button {
+                    isShowingIMSLPPanel = true
+                } label: {
+                    Image(systemName: "opticaldisc")
+                }
             }
         }
         .sheet(isPresented: $isShowingAddSourceSheet) {
@@ -120,6 +126,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $isShowingMetadataEditor) {
             MetadataEditView(track: trackBeingEdited)
+        }
+        .sheet(isPresented: $isShowingIMSLPPanel) {
+            IMSLPPanelView()
         }
     }
 
