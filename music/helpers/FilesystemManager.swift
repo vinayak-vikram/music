@@ -51,5 +51,6 @@ func listTracks() -> [String] {
         return []
     }
     let tracksURL = dataDirectory.appendingPathComponent("tracks")
-    return (try? FileManager.default.contentsOfDirectory(atPath: tracksURL.path())) ?? []
+    let contents = (try? FileManager.default.contentsOfDirectory(atPath: tracksURL.path())) ?? []
+    return contents.filter { $0.lowercased().hasSuffix(".mp3") }
 }
