@@ -17,6 +17,11 @@ final class PlayerManager: NSObject, ObservableObject {
     private var player: AVPlayer?
     private var endObserver: NSObjectProtocol?
 
+    var displayTitle: String {
+        guard let currentTrack else { return "Nothing playing" }
+        return (currentTrack as NSString).deletingPathExtension
+    }
+
     override init() {
         super.init()
         configureRemoteCommands()
@@ -108,7 +113,7 @@ final class PlayerManager: NSObject, ObservableObject {
         }
 
         var info: [String: Any] = [
-            MPMediaItemPropertyTitle: (currentTrack as NSString).deletingPathExtension,
+            MPMediaItemPropertyTitle: displayTitle,
             MPNowPlayingInfoPropertyPlaybackRate: player.rate,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: player.currentTime().seconds,
         ]

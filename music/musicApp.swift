@@ -20,8 +20,8 @@ struct musicApp: App {
         }
         MenuBarExtra("music", systemImage: "music.note.list") {
             PlayerView()
-                .environmentObject(trackStore)
                 .environmentObject(playerManager)
         }
+        .menuBarExtraStyle(.window)
     }
 }

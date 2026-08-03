@@ -7,25 +7,18 @@
 
 import SwiftUI
 
+private let playerWidth: CGFloat = 220
+private let contentPadding: CGFloat = 6
+private let visibleTitleCharacters = 20
+
 struct PlayerView: View {
-    @EnvironmentObject private var trackStore: TrackStore
     @EnvironmentObject private var playerManager: PlayerManager
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text(playerManager.currentTrack ?? "Nothing playing")
-                    .font(.caption)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                Spacer()
-                Button {
-                    trackStore.refresh()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-            }
-            HStack {
+        VStack(alignment: .leading, spacing: 8) {
+            ScrollingText(text: playerManager.displayTitle)
+
+            HStack(spacing: 16) {
                 Button {
                     playerManager.togglePlayPause()
                 } label: {
@@ -41,13 +34,43 @@ struct PlayerView: View {
                 .disabled(playerManager.currentTrack == nil)
             }
         }
-        .padding(8)
-        .frame(width: 220)
+        .padding(contentPadding)
+        .frame(width: playerWidth, alignment: .leading)
+    }
+}
+
+private struct ScrollingText: View {
+    let text: String
+
+    @State private var offset: CGFloat = 0
+
+    private var width: CGFloat { playerWidth - contentPadding * 2 }
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 11, weight: .regular, design: .monospaced))
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .fixedSize()
+            .offset(x: offset)
+            .frame(width: width, alignment: .leading)
+            .clipped()
+            .onAppear(perform: startScrolling)
+            .onChange(of: text) { _, _ in startScrolling() }
+    }
+
+    private func startScrolling() {
+        offset = 0
+        let overflowCharacters = text.count - visibleTitleCharacters
+        guard overflowCharacters > 0 else { return }
+        let distance = CGFloat(overflowCharacters) * (width / CGFloat(visibleTitleCharacters))
+        withAnimation(.linear(duration: Double(overflowCharacters) * 0.3).repeatForever(autoreverses: false)) {
+            offset = -distance
+        }
     }
 }
 
 #Preview {
     PlayerView()
-        .environmentObject(TrackStore())
         .environmentObject(PlayerManager())
 }
