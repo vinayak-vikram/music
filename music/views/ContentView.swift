@@ -50,6 +50,18 @@ struct ContentView: View {
         groupingMode == .composer ? .artistOnly : .hidden
     }
 
+    private var secondaryLevelName: String {
+        groupingMode == .composer ? "Piece" : "Album"
+    }
+
+    private var groupLevelNameWithArticle: String {
+        groupingMode == .composer ? "a Composer" : "an Artist"
+    }
+
+    private var secondaryLevelNameWithArticle: String {
+        groupingMode == .composer ? "a Piece" : "an Album"
+    }
+
     var body: some View {
         NavigationSplitView {
             sidebar
@@ -134,7 +146,7 @@ struct ContentView: View {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(group.id)
-                            Text("\(group.albums.count) album\(group.albums.count == 1 ? "" : "s")")
+                            Text("\(group.albums.count) \(secondaryLevelName.lowercased())\(group.albums.count == 1 ? "" : "s")")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -162,7 +174,7 @@ struct ContentView: View {
         } else if let selectedGroup {
             List(selection: $selectedAlbumID) {
                 if !selectedGroup.albums.isEmpty {
-                    Section("Albums") {
+                    Section("\(secondaryLevelName)s") {
                         ForEach(selectedGroup.albums) { album in
                             Label {
                                 VStack(alignment: .leading, spacing: 2) {
@@ -193,7 +205,7 @@ struct ContentView: View {
             .navigationTitle(selectedGroup.id)
         } else {
             ContentUnavailableView(
-                "Select a \(groupingMode.rawValue)",
+                "Select \(groupLevelNameWithArticle)",
                 systemImage: "folder"
             )
         }
@@ -212,7 +224,7 @@ struct ContentView: View {
             }
             .navigationTitle(selectedAlbum.id)
         } else {
-            ContentUnavailableView("Select an Album", systemImage: "rectangle.stack")
+            ContentUnavailableView("Select \(secondaryLevelNameWithArticle)", systemImage: "rectangle.stack")
         }
     }
 }

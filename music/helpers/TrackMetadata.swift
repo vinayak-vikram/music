@@ -15,6 +15,8 @@ struct TrackMetadata: Equatable, Codable {
     var year: Int? = nil
     var genre: String? = nil
     var composer: String? = nil
+    var piece: String? = nil
+    var movement: String? = nil
 }
 
 private struct FFProbeOutput: Decodable {
@@ -54,7 +56,9 @@ func loadMetadata(for track: String) -> TrackMetadata {
             trackNumber: tagValue("track", in: tags).flatMap { Int($0.split(separator: "/").first.map(String.init) ?? "") },
             year: tagValue("date", in: tags).flatMap { Int($0.prefix(4)) },
             genre: tagValue("genre", in: tags),
-            composer: tagValue("composer", in: tags)
+            composer: tagValue("composer", in: tags),
+            piece: tagValue("grouping", in: tags),
+            movement: tagValue("TIT3", in: tags)
         )
     } catch {
         return TrackMetadata()
@@ -100,14 +104,27 @@ private func metadataArguments(for metadata: TrackMetadata) -> [String] {
         ("date", metadata.year.map(String.init)),
         ("genre", metadata.genre),
         ("composer", metadata.composer),
+        ("grouping", metadata.piece),
+        ("TIT3", metadata.movement),
     ]
     return fields.flatMap { key, value in ["-metadata", "\(key)=\(value ?? "")"] }
 }
 
 func resolvedTitle(for track: String) -> String {
-    if let title = cachedMetadata(for: track)?.title, !title.isEmpty {
+    let metadata = cachedMetadata(for: track)
+    if let title = metadata?.title, !title.isEmpty {
         return title
     }
+
+    let piece = metadata?.piece?.isEmpty == false ? metadata?.piece : nil
+    let movement = metadata?.movement?.isEmpty == false ? metadata?.movement : nil
+    switch (piece, movement) {
+    case let (piece?, movement?): return "\(piece): \(movement)"
+    case let (piece?, nil): return piece
+    case let (nil, movement?): return movement
+    case (nil, nil): break
+    }
+
     return (track as NSString).deletingPathExtension
 }
 

@@ -20,6 +20,8 @@ struct MetadataEditView: View {
     @State private var year = ""
     @State private var genre = ""
     @State private var composer = ""
+    @State private var piece = ""
+    @State private var movement = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -34,6 +36,8 @@ struct MetadataEditView: View {
                 TextField("Year", text: $year)
                 TextField("Genre", text: $genre)
                 TextField("Composer", text: $composer)
+                TextField("Piece", text: $piece)
+                TextField("Movement", text: $movement)
             }
 
             HStack {
@@ -50,7 +54,9 @@ struct MetadataEditView: View {
                             trackNumber: Int(trackNumber),
                             year: Int(year),
                             genre: genre.isEmpty ? nil : genre,
-                            composer: composer.isEmpty ? nil : composer
+                            composer: composer.isEmpty ? nil : composer,
+                            piece: piece.isEmpty ? nil : piece,
+                            movement: movement.isEmpty ? nil : movement
                         ),
                         for: track
                     )
@@ -70,6 +76,8 @@ struct MetadataEditView: View {
             year = metadata.year.map(String.init) ?? ""
             genre = metadata.genre ?? ""
             composer = metadata.composer ?? ""
+            piece = metadata.piece ?? ""
+            movement = metadata.movement ?? ""
         }
     }
 }

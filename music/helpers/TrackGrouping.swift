@@ -33,8 +33,9 @@ func groupedLibrary(tracks: [String], by field: GroupingField) -> [LibraryGroup]
     for track in tracks {
         let metadata = index[track] ?? TrackMetadata()
         let groupKey = normalizedKey(field == .composer ? metadata.composer : metadata.artist, fallback: unknownGroupName)
-        if let album = metadata.album, !album.trimmingCharacters(in: .whitespaces).isEmpty {
-            albumBuckets[groupKey, default: [:]][album, default: []].append(track)
+        let secondary = field == .composer ? metadata.piece : metadata.album
+        if let secondary, !secondary.trimmingCharacters(in: .whitespaces).isEmpty {
+            albumBuckets[groupKey, default: [:]][secondary, default: []].append(track)
         } else {
             singleBuckets[groupKey, default: []].append(track)
         }
