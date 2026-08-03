@@ -13,5 +13,8 @@ struct musicApp: App {
         WindowGroup {
             ContentView()
         }
+        MenuBarExtra("music", systemImage: "music.note.list") {
+            PlayerView()
+        }
     }
 }
