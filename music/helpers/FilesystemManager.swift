@@ -46,11 +46,12 @@ func initFs() -> Int8 {
     return 0
 }
 
+func tracksDirectoryURL() -> URL? {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("tracks")
+}
+
 func listTracks() -> [String] {
-    guard let dataDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-        return []
-    }
-    let tracksURL = dataDirectory.appendingPathComponent("tracks")
+    guard let tracksURL = tracksDirectoryURL() else { return [] }
     let contents = (try? FileManager.default.contentsOfDirectory(atPath: tracksURL.path())) ?? []
     return contents.filter { $0.lowercased().hasSuffix(".mp3") }
 }

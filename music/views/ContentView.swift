@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var trackStore: TrackStore
+    @EnvironmentObject private var playerManager: PlayerManager
 
     var body: some View {
         VStack {
@@ -21,7 +22,18 @@ struct ContentView: View {
                 }
             }
             List(trackStore.tracks, id: \.self) { track in
-                Text(track)
+                Button {
+                    playerManager.play(track)
+                } label: {
+                    HStack {
+                        Text(track)
+                        if track == playerManager.currentTrack {
+                            Spacer()
+                            Image(systemName: playerManager.isPlaying ? "speaker.wave.2.fill" : "pause.fill")
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
             }
         }
         .padding()
@@ -34,4 +46,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environmentObject(TrackStore())
+        .environmentObject(PlayerManager())
 }
