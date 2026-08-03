@@ -33,6 +33,26 @@ struct PlayerView: View {
                 }
                 .disabled(playerManager.currentTrack == nil)
             }
+
+            if !playerManager.recentTracks.isEmpty {
+                Divider()
+
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(playerManager.recentTracks, id: \.self) { track in
+                        Button {
+                            playerManager.play(track)
+                        } label: {
+                            Text(PlayerManager.title(for: track))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
         }
         .padding(contentPadding)
         .frame(width: playerWidth, alignment: .leading)

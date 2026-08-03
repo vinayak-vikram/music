@@ -11,15 +11,22 @@ import MediaPlayer
 
 @MainActor
 final class PlayerManager: NSObject, ObservableObject {
+    private static let maxRecentTracks = 6
+
     @Published private(set) var currentTrack: String?
     @Published private(set) var isPlaying = false
+    @Published private(set) var recentTracks: [String] = []
 
     private var player: AVPlayer?
     private var endObserver: NSObjectProtocol?
 
     var displayTitle: String {
         guard let currentTrack else { return "Nothing playing" }
-        return (currentTrack as NSString).deletingPathExtension
+        return Self.title(for: currentTrack)
+    }
+
+    static func title(for track: String) -> String {
+        (track as NSString).deletingPathExtension
     }
 
     override init() {
@@ -50,7 +57,14 @@ final class PlayerManager: NSObject, ObservableObject {
         player.play()
         currentTrack = track
         isPlaying = true
+        recordRecentlyPlayed(track)
         updateNowPlayingInfo()
+    }
+
+    private func recordRecentlyPlayed(_ track: String) {
+        recentTracks.removeAll { $0 == track }
+        recentTracks.insert(track, at: 0)
+        recentTracks = Array(recentTracks.prefix(Self.maxRecentTracks))
     }
 
     func togglePlayPause() {
