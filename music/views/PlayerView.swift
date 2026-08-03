@@ -9,7 +9,6 @@ import SwiftUI
 
 private let playerWidth: CGFloat = 220
 private let contentPadding: CGFloat = 6
-private let visibleTitleCharacters = 20
 
 struct PlayerView: View {
     @EnvironmentObject private var playerManager: PlayerManager
@@ -62,31 +61,54 @@ struct PlayerView: View {
 private struct ScrollingText: View {
     let text: String
 
-    @State private var offset: CGFloat = 0
+    // repeatForever is gee so we have to use TimelineView
+    @State private var startDate = Date()
+    @State private var measuredTextWidth: CGFloat = 0 //measure manually later
 
     private var width: CGFloat { playerWidth - contentPadding * 2 }
+    private let gap: CGFloat = 24
+    private let scrollSpeed: CGFloat = 24 // points per second
 
     var body: some View {
-        Text(text)
-            .font(.system(size: 11, weight: .regular, design: .monospaced))
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .fixedSize()
-            .offset(x: offset)
-            .frame(width: width, alignment: .leading)
-            .clipped()
-            .onAppear(perform: startScrolling)
-            .onChange(of: text) { _, _ in startScrolling() }
-    }
+        Group {
+            if measuredTextWidth > width {
+                TimelineView(.animation) { context in
+                    let cycleDistance = measuredTextWidth + gap
+                    let cycleDuration = Double(cycleDistance / scrollSpeed)
+                    let elapsed = context.date.timeIntervalSince(startDate)
+                    let progress = elapsed.truncatingRemainder(dividingBy: cycleDuration) / cycleDuration
 
-    private func startScrolling() {
-        offset = 0
-        let overflowCharacters = text.count - visibleTitleCharacters
-        guard overflowCharacters > 0 else { return }
-        let distance = CGFloat(overflowCharacters) * (width / CGFloat(visibleTitleCharacters))
-        withAnimation(.linear(duration: Double(overflowCharacters) * 0.3).repeatForever(autoreverses: false)) {
-            offset = -distance
+                    HStack(spacing: gap) {
+                        Text(text)
+                        Text(text)
+                    }
+                    .fixedSize()
+                    .offset(x: -CGFloat(progress) * cycleDistance)
+                    .animation(nil, value: progress)
+                }
+            } else {
+                Text(text)
+            }
         }
+        .font(.system(size: 11, weight: .regular, design: .monospaced))
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .background(
+            Text(text)
+                .font(.system(size: 11, weight: .regular, design: .monospaced))
+                .fixedSize()
+                .hidden()
+                .background(
+                    GeometryReader { proxy in
+                        Color.clear
+                            .onAppear { measuredTextWidth = proxy.size.width }
+                            .onChange(of: proxy.size.width) { _, newValue in measuredTextWidth = newValue }
+                    }
+                )
+        )
+        .frame(width: width, alignment: .leading)
+        .clipped()
+        .onChange(of: text) { _, _ in startDate = Date() }
     }
 }
 
