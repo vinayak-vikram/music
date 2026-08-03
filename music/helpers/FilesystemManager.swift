@@ -55,3 +55,26 @@ func listTracks() -> [String] {
     let contents = (try? FileManager.default.contentsOfDirectory(atPath: tracksURL.path())) ?? []
     return contents.filter { $0.lowercased().hasSuffix(".mp3") }
 }
+
+@discardableResult
+func importTrack(from sourceURL: URL) -> Bool {
+    guard let tracksURL = tracksDirectoryURL() else { return false }
+    let destinationURL = tracksURL.appendingPathComponent(sourceURL.lastPathComponent)
+
+    let didStartAccessing = sourceURL.startAccessingSecurityScopedResource()
+    defer {
+        if didStartAccessing {
+            sourceURL.stopAccessingSecurityScopedResource()
+        }
+    }
+
+    do {
+        if FileManager.default.fileExists(atPath: destinationURL.path()) {
+            try FileManager.default.removeItem(at: destinationURL)
+        }
+        try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+        return true
+    } catch {
+        return false
+    }
+}
