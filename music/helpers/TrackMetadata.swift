@@ -104,6 +104,13 @@ private func metadataArguments(for metadata: TrackMetadata) -> [String] {
     return fields.flatMap { key, value in ["-metadata", "\(key)=\(value ?? "")"] }
 }
 
+func resolvedTitle(for track: String) -> String {
+    if let title = cachedMetadata(for: track)?.title, !title.isEmpty {
+        return title
+    }
+    return (track as NSString).deletingPathExtension
+}
+
 private func tagValue(_ key: String, in tags: [String: String]) -> String? {
     guard let value = tags.first(where: { $0.key.caseInsensitiveCompare(key) == .orderedSame })?.value,
           !value.isEmpty else { return nil }

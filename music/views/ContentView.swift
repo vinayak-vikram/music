@@ -38,7 +38,7 @@ struct ContentView: View {
                     playerManager.play(track)
                 } label: {
                     HStack {
-                        Text(track)
+                        Text(resolvedTitle(for: track))
                         if track == playerManager.currentTrack {
                             Spacer()
                             Image(systemName: playerManager.isPlaying ? "speaker.wave.2.fill" : "pause.fill")

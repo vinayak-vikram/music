@@ -42,7 +42,7 @@ struct PlayerView: View {
                         Button {
                             playerManager.play(track)
                         } label: {
-                            Text(PlayerManager.title(for: track))
+                            Text(resolvedTitle(for: track))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)

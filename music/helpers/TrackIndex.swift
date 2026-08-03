@@ -48,6 +48,10 @@ func updateIndex(for track: String, metadata: TrackMetadata) -> Bool {
     return true
 }
 
+func cachedMetadata(for track: String) -> TrackMetadata? {
+    loadIndex()[track]?.metadata
+}
+
 func removeFromIndex(_ track: String) {
     var index = loadIndex()
     index.removeValue(forKey: track)

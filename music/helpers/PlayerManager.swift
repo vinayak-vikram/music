@@ -22,11 +22,7 @@ final class PlayerManager: NSObject, ObservableObject {
 
     var displayTitle: String {
         guard let currentTrack else { return "Nothing playing" }
-        return Self.title(for: currentTrack)
-    }
-
-    static func title(for track: String) -> String {
-        (track as NSString).deletingPathExtension
+        return resolvedTitle(for: currentTrack)
     }
 
     override init() {
