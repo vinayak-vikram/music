@@ -8,11 +8,7 @@
 import Foundation
 
 func initFs() -> Int8 {
-    guard let dataDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-        return 1
-    }
-    
-    debugPrint(dataDirectory.path())
+    let dataDirectory = URL(filePath: "~/Music/")
 
     let fileManager = FileManager.default
     let tracksURL = dataDirectory.appendingPathComponent("tracks")
@@ -59,7 +55,8 @@ func listTracks() -> [String] {
 @discardableResult
 func importTrack(from sourceURL: URL) -> Bool {
     guard let tracksURL = tracksDirectoryURL() else { return false }
-    let destinationURL = tracksURL.appendingPathComponent(sourceURL.lastPathComponent)
+    let baseName = sourceURL.deletingPathExtension().lastPathComponent
+    let destinationURL = tracksURL.appendingPathComponent(baseName).appendingPathExtension("mp3")
 
     let didStartAccessing = sourceURL.startAccessingSecurityScopedResource()
     defer {
@@ -72,8 +69,13 @@ func importTrack(from sourceURL: URL) -> Bool {
         if FileManager.default.fileExists(atPath: destinationURL.path()) {
             try FileManager.default.removeItem(at: destinationURL)
         }
-        try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
-        return true
+
+        if sourceURL.pathExtension.lowercased() == "mp3" {
+            try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+            return true
+        }
+
+        return convertToMp3(sourceURL: sourceURL, destinationURL: destinationURL)
     } catch {
         return false
     }

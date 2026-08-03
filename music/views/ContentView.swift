@@ -14,6 +14,7 @@ struct ContentView: View {
 
     @State private var isShowingAddSourceSheet = false
     @State private var isShowingFileImporter = false
+    @State private var isShowingImportError = false
 
     var body: some View {
         VStack {
@@ -57,13 +58,21 @@ struct ContentView: View {
         }
         .fileImporter(
             isPresented: $isShowingFileImporter,
-            allowedContentTypes: [.mp3],
+            allowedContentTypes: [.audio, .movie],
             allowsMultipleSelection: false
         ) { result in
             if case .success(let urls) = result, let url = urls.first {
-                importTrack(from: url)
-                trackStore.refresh()
+                if importTrack(from: url) {
+                    trackStore.refresh()
+                } else {
+                    isShowingImportError = true
+                }
             }
+        }
+        .alert("Couldn't Add Track", isPresented: $isShowingImportError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("install ffmpeg (via brew, etc.)")
         }
     }
 }
