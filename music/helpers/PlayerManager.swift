@@ -20,6 +20,8 @@ final class PlayerManager: NSObject, ObservableObject {
     @Published private(set) var artworkData: Data?
     @Published private(set) var currentTime: TimeInterval = 0
     @Published private(set) var duration: TimeInterval = 0
+    @Published private(set) var activePlaylist: Playlist?
+    @Published private(set) var activePlaylistIndex: Int?
 
     private var player: AVPlayer?
     private var endObserver: NSObjectProtocol?
@@ -35,7 +37,7 @@ final class PlayerManager: NSObject, ObservableObject {
         configureRemoteCommands()
     }
 
-    func play(_ track: String) {
+    func play(_ track: String, playlist: Playlist? = nil) {
         guard let url = tracksDirectoryURL()?.appendingPathComponent(track) else { return }
 
         if let endObserver {
@@ -53,8 +55,13 @@ final class PlayerManager: NSObject, ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.isPlaying = false
-                self?.updateNowPlayingInfo()
+                guard let self else { return }
+                if self.hasNext {
+                    self.playNext()
+                } else {
+                    self.isPlaying = false
+                    self.updateNowPlayingInfo()
+                }
             }
         }
         timeObserverToken = player.addPeriodicTimeObserver(
@@ -76,7 +83,35 @@ final class PlayerManager: NSObject, ObservableObject {
         recordRecentlyPlayed(track)
         verifyIndex(for: track)
         artworkData = extractArtwork(for: track)
+
+        if let playlist, let index = playlist.tracks.firstIndex(of: track) {
+            activePlaylist = playlist
+            activePlaylistIndex = index
+        } else {
+            activePlaylist = nil
+            activePlaylistIndex = nil
+        }
+
         updateNowPlayingInfo()
+    }
+
+    var hasNext: Bool {
+        guard let activePlaylist, let activePlaylistIndex else { return false }
+        return activePlaylistIndex + 1 < activePlaylist.tracks.count
+    }
+
+    var hasPrevious: Bool {
+        activePlaylistIndex.map { $0 > 0 } ?? false
+    }
+
+    func playNext() {
+        guard let activePlaylist, let activePlaylistIndex, hasNext else { return }
+        play(activePlaylist.tracks[activePlaylistIndex + 1], playlist: activePlaylist)
+    }
+
+    func playPrevious() {
+        guard let activePlaylist, let activePlaylistIndex, hasPrevious else { return }
+        play(activePlaylist.tracks[activePlaylistIndex - 1], playlist: activePlaylist)
     }
 
     func seek(to time: TimeInterval) {
@@ -118,6 +153,8 @@ final class PlayerManager: NSObject, ObservableObject {
         artworkData = nil
         currentTime = 0
         duration = 0
+        activePlaylist = nil
+        activePlaylistIndex = nil
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 

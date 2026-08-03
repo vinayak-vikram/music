@@ -38,20 +38,68 @@ struct PlayerView: View {
                 )
                 .disabled(playerManager.currentTrack == nil)
 
-                Button {
-                    playerManager.togglePlayPause()
-                } label: {
-                    Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 18))
-                        .frame(width: 40, height: 28)
+                HStack(spacing: 12) {
+                    Button {
+                        playerManager.playPrevious()
+                    } label: {
+                        Image(systemName: "backward.fill")
+                    }
+                    .disabled(!playerManager.hasPrevious)
+
+                    Button {
+                        playerManager.togglePlayPause()
+                    } label: {
+                        Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 18))
+                            .frame(width: 40, height: 28)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(playerManager.currentTrack == nil)
+
+                    Button {
+                        playerManager.playNext()
+                    } label: {
+                        Image(systemName: "forward.fill")
+                    }
+                    .disabled(!playerManager.hasNext)
                 }
-                .buttonStyle(.bordered)
-                .disabled(playerManager.currentTrack == nil)
                 .frame(maxWidth: .infinity, alignment: .center)
             }
 
-            if !playerManager.recentTracks.isEmpty {
+            if let activePlaylist = playerManager.activePlaylist {
                 Divider()
+
+                Text(activePlaylist.name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(activePlaylist.tracks, id: \.self) { track in
+                        Button {
+                            playerManager.play(track, playlist: activePlaylist)
+                        } label: {
+                            HStack {
+                                Text(resolvedTitle(for: track))
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                if track == playerManager.currentTrack {
+                                    Spacer()
+                                    Image(systemName: playerManager.isPlaying ? "speaker.wave.2.fill" : "pause.fill")
+                                }
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            } else if !playerManager.recentTracks.isEmpty {
+                Divider()
+
+                Text("Recents")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(playerManager.recentTracks, id: \.self) { track in
