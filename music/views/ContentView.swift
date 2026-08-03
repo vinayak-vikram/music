@@ -15,6 +15,8 @@ struct ContentView: View {
     @State private var isShowingAddSourceSheet = false
     @State private var isShowingFileImporter = false
     @State private var isShowingImportError = false
+    @State private var isShowingMetadataEditor = false
+    @State private var trackBeingEdited = ""
 
     var body: some View {
         VStack {
@@ -44,6 +46,12 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .contextMenu {
+                    Button("Edit Metadata…") {
+                        trackBeingEdited = track
+                        isShowingMetadataEditor = true
+                    }
+                }
             }
         }
         .padding()
@@ -73,6 +81,9 @@ struct ContentView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("install ffmpeg (via brew, etc.)")
+        }
+        .sheet(isPresented: $isShowingMetadataEditor) {
+            MetadataEditView(track: trackBeingEdited)
         }
     }
 }

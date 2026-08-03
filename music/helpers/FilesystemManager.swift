@@ -42,8 +42,12 @@ func initFs() -> Int8 {
     return 0
 }
 
+func dataDirectoryURL() -> URL? {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+}
+
 func tracksDirectoryURL() -> URL? {
-    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("tracks")
+    dataDirectoryURL()?.appendingPathComponent("tracks")
 }
 
 func listTracks() -> [String] {
@@ -72,10 +76,13 @@ func importTrack(from sourceURL: URL) -> Bool {
 
         if sourceURL.pathExtension.lowercased() == "mp3" {
             try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
-            return true
+        } else {
+            guard convertToMp3(sourceURL: sourceURL, destinationURL: destinationURL) else { return false }
         }
 
-        return convertToMp3(sourceURL: sourceURL, destinationURL: destinationURL)
+        let track = destinationURL.lastPathComponent
+        updateIndex(for: track, metadata: loadMetadata(for: track))
+        return true
     } catch {
         return false
     }

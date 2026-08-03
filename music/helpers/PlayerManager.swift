@@ -58,6 +58,7 @@ final class PlayerManager: NSObject, ObservableObject {
         currentTrack = track
         isPlaying = true
         recordRecentlyPlayed(track)
+        verifyIndex(for: track)
         updateNowPlayingInfo()
     }
 
