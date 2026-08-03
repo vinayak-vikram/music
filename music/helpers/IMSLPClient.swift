@@ -114,11 +114,20 @@ final class IMSLPClient: ObservableObject {
     func fetchWork(title: String, composer: String) async throws -> IMSLPWork {
         let wikitext = try await fetchWikitext(page: title)
         var work = parseWorkInfo(from: wikitext, fallbackTitle: title, composer: composer)
-        work.recordings = parseCommunityRecordings(from: wikitext)
+        var recordings = parseCommunityRecordings(from: wikitext)
 
-        if isLoggedIn, let html = try? await fetchFullPageHTML(page: title) {
-            work.recordings += parseNaxosRecordings(from: html)
+        if let html = try? await fetchFullPageHTML(page: title) {
+            recordings = recordings.map { recording in
+                var recording = recording
+                recording.duration = communityRecordingDuration(fileName: recording.fileName, in: html)
+                return recording
+            }
+            if isLoggedIn {
+                recordings += parseNaxosRecordings(from: html)
+            }
         }
+
+        work.recordings = recordings
         return work
     }
 
@@ -306,6 +315,20 @@ private func performerString(from fields: [String: String]) -> String? {
     return parts.isEmpty ? nil : parts.joined(separator: ", ")
 }
 
+// must regex out of webpage bc gee
+private func communityRecordingDuration(fileName: String, in html: String) -> TimeInterval? {
+    let displayName = fileName.replacingOccurrences(of: "_", with: " ")
+    guard let markerRange = html.range(of: "title=\"File:\(displayName)\"") else { return nil }
+    let window = html[markerRange.upperBound...].prefix(200)
+    guard let match = window.range(of: #"(\d+):(\d{2})(?::(\d{2}))?"#, options: .regularExpression) else { return nil }
+    let parts = window[match].split(separator: ":").compactMap { Int($0) }
+    switch parts.count {
+    case 2: return TimeInterval(parts[0] * 60 + parts[1])
+    case 3: return TimeInterval(parts[0] * 3600 + parts[1] * 60 + parts[2])
+    default: return nil
+    }
+}
+
 private func stripWikiLinks(_ text: String) -> String {
     guard let regex = try? NSRegularExpression(pattern: #"\[\[(?:[^|\]]*\|)?([^\]]+)\]\]"#) else { return text }
     return regex.stringByReplacingMatches(in: text, range: NSRange(text.startIndex..., in: text), withTemplate: "$1")
@@ -389,6 +412,7 @@ private struct NaxosAlbum: Decodable {
 private struct NaxosTrack: Decodable {
     var dsc: String
     var url: String
+    var dur: Double
 }
 
 private func parseNaxosRecordings(from html: String) -> [IMSLPRecording] {
@@ -405,7 +429,8 @@ private func parseNaxosRecordings(from html: String) -> [IMSLPRecording] {
                 artist: album.art,
                 album: album.tit,
                 fileName: track.dsc,
-                naxosToken: track.url
+                naxosToken: track.url,
+                duration: track.dur
             )
         }
     }

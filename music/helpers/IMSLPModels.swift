@@ -19,6 +19,7 @@ struct IMSLPRecording: Identifiable {
     var album: String?
     var fileName: String
     var naxosToken: String?
+    var duration: TimeInterval?
 
     var isNaxos: Bool { naxosToken != nil }
 }

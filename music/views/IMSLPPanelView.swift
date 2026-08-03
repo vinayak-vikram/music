@@ -153,6 +153,12 @@ struct IMSLPPanelView: View {
                 }
             }
             Spacer()
+            if let duration = recording.duration {
+                Text(formattedDuration(duration))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
             if downloadingIDs.contains(recording.id) {
                 ProgressView()
                     .controlSize(.small)
@@ -242,6 +248,17 @@ struct IMSLPPanelView: View {
             }
         }
     }
+}
+
+private func formattedDuration(_ seconds: TimeInterval) -> String {
+    let total = Int(seconds.rounded())
+    let hours = total / 3600
+    let minutes = (total % 3600) / 60
+    let secs = total % 60
+    if hours > 0 {
+        return String(format: "%d:%02d:%02d", hours, minutes, secs)
+    }
+    return String(format: "%d:%02d", minutes, secs)
 }
 
 #Preview {
