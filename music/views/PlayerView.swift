@@ -10,11 +10,16 @@ import SwiftUI
 struct PlayerView: View {
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Button {
+                initFs()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .alignmentGuide(HorizontalAlignment.trailing) { _ in -3 }
         }
-        .padding()
     }
+}
+
+#Preview {
+    PlayerView()
 }
