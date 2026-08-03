@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct PlayerView: View {
+    @EnvironmentObject private var trackStore: TrackStore
+
     var body: some View {
         VStack {
             Button {
-                initFs()
+                trackStore.refresh()
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
@@ -22,4 +24,5 @@ struct PlayerView: View {
 
 #Preview {
     PlayerView()
+        .environmentObject(TrackStore())
 }

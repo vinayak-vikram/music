@@ -8,26 +8,30 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var tracks: [String] = []
+    @EnvironmentObject private var trackStore: TrackStore
 
     var body: some View {
         VStack {
             HStack {
                 Spacer()
                 Button {
-                    initFs()
-                    tracks = listTracks()
+                    trackStore.refresh()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
             }
-            List(tracks, id: \.self) { track in
+            List(trackStore.tracks, id: \.self) { track in
                 Text(track)
             }
         }
         .padding()
         .onAppear {
-            tracks = listTracks()
+            trackStore.refresh()
         }
     }
+}
+
+#Preview {
+    ContentView()
+        .environmentObject(TrackStore())
 }
