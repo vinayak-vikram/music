@@ -45,3 +45,11 @@ func initFs() -> Int8 {
 
     return 0
 }
+
+func listTracks() -> [String] {
+    guard let dataDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        return []
+    }
+    let tracksURL = dataDirectory.appendingPathComponent("tracks")
+    return (try? FileManager.default.contentsOfDirectory(atPath: tracksURL.path())) ?? []
+}

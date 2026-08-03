@@ -8,13 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var tracks: [String] = []
+
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            HStack {
+                Spacer()
+                Button {
+                    initFs()
+                    tracks = listTracks()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+            }
+            List(tracks, id: \.self) { track in
+                Text(track)
+            }
         }
         .padding()
+        .onAppear {
+            tracks = listTracks()
+        }
     }
 }
