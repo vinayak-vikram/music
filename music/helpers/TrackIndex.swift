@@ -52,6 +52,10 @@ func cachedMetadata(for track: String) -> TrackMetadata? {
     loadIndex()[track]?.metadata
 }
 
+func loadTrackMetadataIndex() -> [String: TrackMetadata] {
+    loadIndex().mapValues(\.metadata)
+}
+
 func removeFromIndex(_ track: String) {
     var index = loadIndex()
     index.removeValue(forKey: track)

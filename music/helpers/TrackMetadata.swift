@@ -111,6 +111,12 @@ func resolvedTitle(for track: String) -> String {
     return (track as NSString).deletingPathExtension
 }
 
+func trackSubtitle(for track: String) -> String? {
+    guard let metadata = cachedMetadata(for: track) else { return nil }
+    let parts = [metadata.artist, metadata.album].compactMap { $0 }.filter { !$0.isEmpty }
+    return parts.isEmpty ? nil : parts.joined(separator: " — ")
+}
+
 private func tagValue(_ key: String, in tags: [String: String]) -> String? {
     guard let value = tags.first(where: { $0.key.caseInsensitiveCompare(key) == .orderedSame })?.value,
           !value.isEmpty else { return nil }
